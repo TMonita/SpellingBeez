@@ -1,9 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
-import { ellipse } from 'framer-motion/client';
-import SpellingBeezLogo from "../assets/SpellingBeezLogo.png";
-import Ellipse from "../assets/Ellipse.png";
+import NavBar from "../components/Navbar";
 
 
 function Welcome() {
@@ -23,7 +21,7 @@ function Welcome() {
       >
          
           <div className="flex items-center justify-between">
-            <Navbar />
+            <NavBar />
         
         </div>
 

@@ -41,7 +41,7 @@ export default function NavBar() {
 
   return (
     <div className="flex justify-center items-center w-full bg-white">
-      <div className="w-[900px] flex justify-between items-center py-5">
+      <div className="w-[900px] flex justify-between items-center">
         {/* Left Logo */}
         <img src={SpellingBeezLogo} className="w-24 h-16" alt="Logo" />
 

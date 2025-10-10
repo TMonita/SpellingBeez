@@ -7,6 +7,7 @@ import Play from './pages/PlayPage';
 import Result from './pages/ResultPage';
 import Profile from './pages/ProfilePage';
 import Feedback from './pages/FeedbackPage';
+import Admin from './pages/AdminPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/result" element={<Result />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/feedback" element={<Feedback />} />
+      <Route path="/admin" element={<Admin />} />
     </Routes>
   );
 }
