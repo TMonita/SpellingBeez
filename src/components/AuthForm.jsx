@@ -12,7 +12,7 @@ export default function AuthForm({ mode }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate("/play");
+    navigate("/welcome");
   };
 
   return (
