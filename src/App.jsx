@@ -1,25 +1,83 @@
-import React from 'react'
+import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Signup from "./pages/SignupPage";
-import Login from './pages/LoginPage';
-import Welcome from './pages/welcomePage';
-import Play from './pages/PlayPage';
-import Result from './pages/ResultPage';
-import Profile from './pages/ProfilePage';
-import Feedback from './pages/FeedbackPage';
-import Admin from './pages/AdminPage';
+import Login from "./pages/LoginPage";
+import Welcome from "./pages/WelcomePage";
+import Play from "./pages/PlayPage";
+import Result from "./pages/ResultPage";
+import Profile from "./pages/ProfilePage";
+import Feedback from "./pages/FeedbackPage";
+import Admin from "./pages/AdminPage";
+import OauthCallback from "./pages/OauthCallback";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminFeedback from "./pages/AdminFeedback";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Signup />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/welcome" element={<Welcome />} />
-      <Route path="/play" element={<Play />} />
-      <Route path="/result" element={<Result />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/feedback" element={<Feedback />} />
-      <Route path="/admin" element={<Admin />} />
+      <Route path="/oauth-callback" element={<OauthCallback />} />
+
+      <Route
+        path="/welcome"
+        element={
+          <ProtectedRoute role="user">
+            <Welcome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/play"
+        element={
+          <ProtectedRoute role="user">
+            <Play />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/result"
+        element={
+          <ProtectedRoute role="user">
+            <Result />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute role="user">
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/feedback"
+        element={
+          <ProtectedRoute role="user">
+            <Feedback />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="admin">
+            <Admin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/feedbacks"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminFeedback />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/unauthorized" element={<h1> Access Denied</h1>} />
     </Routes>
   );
 }
