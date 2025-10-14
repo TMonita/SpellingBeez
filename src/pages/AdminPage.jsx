@@ -4,24 +4,28 @@ import api from "../api/axios";
 import useAuth from "../hooks/useAuth";
 
 export default function Admin() {
-  const [users, setUsers] = useState([]);
-  const [meta, setMeta] = useState({ current_page: 1, last_page: 1 });
-  const { user} = useAuth();
+  const [data, setData] = useState({
+    users: [],
+    overallStats: {}
+  });
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchUsers(1);
+    fetchUsersWithStats();
   }, []);
 
-  const fetchUsers = async (page = 1) => {
+  const fetchUsersWithStats = async () => {
     try {
-      const res = await api.get(`/admin/users?page=${page}`);
-      setUsers(res.data.data); 
-      setMeta({
-        current_page: res.data.current_page,
-        last_page: res.data.last_page,
-      });
+      setLoading(true);
+      const res = await api.get("/users/with-stats");
+      if (res.data.success) {
+        setData(res.data.data);
+      }
     } catch (err) {
-      console.error("❌ Failed to fetch users", err);
+      console.error("❌ Failed to fetch users and stats", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +54,16 @@ export default function Admin() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl">Loading admin dashboard...</div>
+      </div>
+    );
+  }
+
+  const { users, overallStats } = data;
+
   return (
     <div className="flex justify-center items-start">
       <div className="w-[900px] flex flex-col py-5">
@@ -57,67 +71,81 @@ export default function Admin() {
 
         <div className="mt-10 text-center">
           <p className="text-xl tracking-widest">HELLO</p>
-          <p className="text-3xl font-semibold mt-1"> {user?.name || '-'}</p>
+          <p className="text-3xl font-semibold mt-1">{user?.username || user?.name || 'Admin'}</p>
         </div>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard value={users.length} label="ALL USERS" variant="purple" />
-          <StatCard value={5} label="NEW USERS" variant="orange" />
-          <StatCard value={10} label="Right Words" variant="blue" />
-          <StatCard value={4} label="Wrong Words" variant="red" />
+          <StatCard value={overallStats.totalUsers || 0} label="ALL USERS" variant="purple" />
+          <StatCard value={overallStats.totalGamesPlayed || 0} label="TOTAL GAMES" variant="orange" />
+          <StatCard value={overallStats.totalScore || 0} label="TOTAL SCORE" variant="blue" />
+          <StatCard value={overallStats.averageScore || 0} label="AVG SCORE" variant="red" />
         </div>
 
         <div className="mt-12">
-          <p className="text-sm font-semibold tracking-wide mb-3">LATEST USERS</p>
+          <p className="text-sm font-semibold tracking-wide mb-3">ALL USERS</p>
 
           <div className="overflow-hidden rounded-2xl border border-[#eee] shadow-sm">
             {/* Head */}
             <div className="bg-[#F8E090] px-6 py-4 text-sm font-semibold">
               <div className="grid grid-cols-12">
-                <div className="col-span-2">User ID</div>
-                <div className="col-span-3">Name</div>
-                <div className="col-span-4">Email</div>
-                <div className="col-span-3 text-center">Role</div>
+                <div className="col-span-1">ID</div>
+                <div className="col-span-2">Username</div>
+                <div className="col-span-3">Email</div>
+                <div className="col-span-1 text-center">Role</div>
+                <div className="col-span-2 text-center">Games</div>
+                <div className="col-span-2 text-center">Score</div>
+                <div className="col-span-1 text-center">Level</div>
               </div>
             </div>
 
             {/* Rows */}
             <ul className="divide-y divide-[#f2f2f2]">
               {users.map((u) => (
-                <li key={u.id} className="px-6 py-5 hover:bg-[#fafafa]">
+                <li key={u.id} className="px-6 py-4 hover:bg-[#fafafa]">
                   <div className="grid grid-cols-12 items-center text-sm">
-                    <div className="col-span-2">#{u.id}</div>
-                    <div className="col-span-3">{u.name}</div>
-                    <div className="col-span-4">{u.email}</div>
-                    <div className="col-span-3 text-center capitalize">
-                      {u.role || "user"}
+                    <div className="col-span-1 font-medium">#{u.id}</div>
+                    <div className="col-span-2">{u.userName}</div>
+                    <div className="col-span-3 truncate">{u.emailAddress}</div>
+                    <div className="col-span-1 text-center">
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                        u.role === 'ADMIN' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {u.role?.toLowerCase() || "user"}
+                      </span>
                     </div>
+                    <div className="col-span-2 text-center font-medium">{u.totalGamesPlayed}</div>
+                    <div className="col-span-2 text-center font-medium text-green-600">{u.totalScore}</div>
+                    <div className="col-span-1 text-center font-medium">{u.currentLevel}</div>
                   </div>
                 </li>
               ))}
             </ul>
 
-            {/* Pagination */}
-            <div className="flex justify-end items-center gap-3 px-6 py-4">
-              <button
-                disabled={meta.current_page === 1}
-                onClick={() => fetchUsers(meta.current_page - 1)}
-                className="h-9 w-9 grid place-items-center rounded-full border border-[#eee]"
-              >
-                ‹
-              </button>
-              <span className="text-sm font-medium">
-                {meta.current_page} / {meta.last_page}
-              </span>
-              <button
-                disabled={meta.current_page === meta.last_page}
-                onClick={() => fetchUsers(meta.current_page + 1)}
-                className="h-9 w-9 grid place-items-center rounded-full border border-[#eee]"
-              >
-                ›
-              </button>
+            {/* Footer Stats */}
+            <div className="bg-gray-50 px-6 py-3 border-t">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <div>
+                  Showing <span className="font-medium">{users.length}</span> users
+                </div>
+                <div className="flex gap-4">
+                  <div>Total Games: <span className="font-medium">{overallStats.totalGamesPlayed}</span></div>
+                  <div>Total Score: <span className="font-medium">{overallStats.totalScore}</span></div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Refresh Button */}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={fetchUsersWithStats}
+            className="px-6 py-2 bg-[#F8E090] rounded-full hover:brightness-95 transition font-medium"
+          >
+            Refresh Data
+          </button>
         </div>
       </div>
     </div>

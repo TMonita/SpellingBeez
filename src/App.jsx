@@ -22,7 +22,7 @@ function App() {
       <Route
         path="/welcome"
         element={
-          <ProtectedRoute role="user">
+          <ProtectedRoute role="USER">
             <Welcome />
           </ProtectedRoute>
         }
@@ -30,7 +30,7 @@ function App() {
       <Route
         path="/play"
         element={
-          <ProtectedRoute role="user">
+          <ProtectedRoute role="USER">
             <Play />
           </ProtectedRoute>
         }
@@ -38,7 +38,7 @@ function App() {
       <Route
         path="/result"
         element={
-          <ProtectedRoute role="user">
+          <ProtectedRoute role="USER">
             <Result />
           </ProtectedRoute>
         }
@@ -46,7 +46,7 @@ function App() {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute role="user">
+          <ProtectedRoute role="USER">
             <Profile />
           </ProtectedRoute>
         }
@@ -54,7 +54,7 @@ function App() {
       <Route
         path="/feedback"
         element={
-          <ProtectedRoute role="user">
+          <ProtectedRoute role="USER">
             <Feedback />
           </ProtectedRoute>
         }
@@ -63,7 +63,7 @@ function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute role="admin">
+          <ProtectedRoute role="ADMIN">
             <Admin />
           </ProtectedRoute>
         }
@@ -71,7 +71,7 @@ function App() {
       <Route
         path="/admin/feedbacks"
         element={
-          <ProtectedRoute role="admin">
+          <ProtectedRoute role="ADMIN">
             <AdminFeedback />
           </ProtectedRoute>
         }

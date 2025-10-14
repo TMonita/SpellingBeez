@@ -1,53 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; // Import eye icons
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import logo from "../assets/SpellingBeezLogo.png";
 
 export default function AuthForm({ mode }) {
   const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // toggle state
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleOauthLogin = () => {
-    const popup = window.open(
-      "http://localhost:8000/auth/google",
-      "googleLogin",
-      "width=600,height=700"
-    );
-
-    if (!popup) {
-      alert("Popup blocked — allow popups for this site.");
-      return;
-    }
-
-    const allowedOrigins = ["http://localhost:8000", "http://127.0.0.1:8000"];
-
-    const messageListener = (event) => {
-      console.log("📨 Message received from:", event.origin, event.data);
-
-      if (event.origin !== "http://localhost:5173") return;
-
-      const { token } = event.data || {};
-      if (token) {
-        console.log("Token received:", token);
-        localStorage.setItem("token", token);
-
-        navigate("/welcome");
-      }
-    };
-
-    window.addEventListener("message", messageListener);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const endpoint =
       mode === "signup"
-        ? "http://127.0.0.1:8000/api/register"
-        : "http://127.0.0.1:8000/api/login";
+        ? "http://127.0.0.1:8080/api/v1/auth/register"
+        : "http://127.0.0.1:8080/api/v1/auth/login";
 
     try {
       const response = await fetch(endpoint, {
@@ -56,7 +28,14 @@ export default function AuthForm({ mode }) {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body:
+          mode === "signup"
+            ? JSON.stringify({
+                userName: userName,
+                emailAddress: email,
+                password: password,
+              })
+            : JSON.stringify({ emailAddress: email, password: password }),
       });
 
       console.log("Response status:", response.status);
@@ -72,14 +51,19 @@ export default function AuthForm({ mode }) {
         );
       }
 
+      if (mode === "signup") {
+        navigate("/login");
+        alert("Registration success, Please login to continue!");
+      }
       const data = JSON.parse(text);
-      console.log("Parsed data:", data);
+      localStorage.setItem("token", data.data.accessToken);
+        navigate("/welcome");
 
-      localStorage.setItem("token", data.token);
-      navigate("/welcome");
     } catch (err) {
       console.error("Error in auth:", err);
       alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -91,35 +75,17 @@ export default function AuthForm({ mode }) {
           className="w-24 h-24 object-contain"
         />
       </div>
-
-      <button
-        onClick={handleOauthLogin}
-        className="w-full py-3 text-black rounded-xl font-light flex items-center justify-center"
-        style={{
-          backgroundColor: "#F8E090",
-          borderRadius: "50px",
-          transition: "background-color 0.3s ease",
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = "#f6d770")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = "#F8E090")
-        }
-      >
-        <FcGoogle size={20} />
-        <span>
-          {mode === "signup" ? "Sign up with Google" : "Log in with Google"}
-        </span>
-      </button>
-
-      <div className="flex items-center my-6">
-        <hr className="flex-1 border-gray-200" />
-        <span className="px-2 text-gray-400 text-sm">or use Email</span>
-        <hr className="flex-1 border-gray-200" />
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-4">
+        {mode === "signup" && (
+          <input
+            type="text"
+            placeholder="Username"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            required
+            className="w-full px-4 py-3 border rounded-xl bg-gray-50 focus:outline-none"
+          />
+        )}
         <input
           type="email"
           placeholder="Email"
@@ -152,7 +118,13 @@ export default function AuthForm({ mode }) {
 
         <button
           type="submit"
-          className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800"
+          disabled={loading}
+          className={`w-full py-3 rounded-xl text-white transition 
+          ${
+            loading
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-black hover:bg-gray-800"
+          }`}
         >
           {mode === "signup" ? "Sign Up" : "Log In"}
         </button>

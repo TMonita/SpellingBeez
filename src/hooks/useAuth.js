@@ -15,7 +15,7 @@ export default function useAuth() {
 
     api.get("/profile")
       .then((res) => {
-        if (res.data) setUser(res.data);
+        if (res.data) setUser(res.data.data);
       })
       .catch((err) => {
         console.warn("Auth check failed:", err);

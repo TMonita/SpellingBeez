@@ -3,87 +3,51 @@ import NavBar from "../components/Navbar";
 import api from "../api/axios";
 
 export default function Profile() {
-  const [user, setUser] = useState({ email: "", name: "", profile_url: "" });
-  const [preview, setPreview] = useState(null);
-  const [file, setFile] = useState(null);
-  const [favFile, setFavFile] = useState(null);
-  const [fileList, setFileList] = useState([]);
+  const [user, setUser] = useState({ 
+    userName: "", 
+    emailAddress: "", 
+    role: "",
+    createdAt: "",
+    id: ""
+  });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    api
-      .get("/profile")
-      .then((res) => setUser(res.data))
-      .catch((err) => console.error("Failed to fetch profile", err));
+    fetchProfile();
   }, []);
 
-  const loadFiles = () => {
-    api
-      .get("/myfav/lists")
-      .then((res) => setFileList(res.data))
-      .catch((err) => console.error("Failed to load files", err));
-  };
-
-  useEffect(() => {
-    loadFiles();
-  }, []);
-
-  const handleFileChange = (e) => {
-    const selected = e.target.files[0];
-    if (selected) {
-      setPreview(URL.createObjectURL(selected));
-      setFile(selected);
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/profile");
+      setUser(response.data.data); 
+      setMessage("");
+    } catch (err) {
+      console.error("Failed to fetch profile", err);
+      setMessage("Failed to load profile");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", user.name);
-    formData.append("email", user.email);
-    if (file) formData.append("profile_url", file);
-
     try {
-      const res = await api.post("/profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await api.patch("/profile", {
+        emailAddress: user.emailAddress,
+        userName: user.userName,
       });
-      alert("Profile updated!");
-      setUser(res.data);
-      setPreview(null);
+      
+      if (response.data.success) {
+        setMessage("Profile updated successfully!");
+        setUser(response.data.data);
+      } else {
+        setMessage(response.data.message || "Failed to update profile");
+      }
     } catch (err) {
-      console.error("Update failed", err);
-    }
-  };
-
-  const handleFavUpload = async (e) => {
-    e.preventDefault();
-    if (!favFile) return alert("Select a .txt file first");
-    const formData = new FormData();
-    formData.append("file", favFile);
-    try {
-      await api.post("/myfav/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("File uploaded securely!");
-      setFavFile(null);
-      loadFiles();
-    } catch (err) {
-      console.error("Upload failed", err);
-      alert("Upload failed");
-    }
-  };
-
-  const handleDownload = async (id, name) => {
-    try {
-      const res = await api.get(`/myfav/${id}`, { responseType: "blob" });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = name;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Download failed", err);
-      alert("Download failed");
+      console.error("Failed to update profile", err);
+      setMessage("Failed to update profile");
     }
   };
 
@@ -92,119 +56,143 @@ export default function Profile() {
     window.location.href = "/";
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="w-[900px] flex flex-col py-20">
+          <NavBar />
+          <div className="flex justify-center items-center mt-12">
+            <div className="text-xl">Loading profile...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-white">
       <div className="w-[900px] flex flex-col py-20">
         <NavBar />
 
+        {/* Success/Error Message */}
+        {message && (
+          <div className={`mx-auto w-[600px] mb-6 p-3 rounded text-center ${
+            message.includes("success") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}>
+            {message}
+          </div>
+        )}
+
         <form
           className="flex flex-col items-center gap-9 mt-12"
           onSubmit={handleUpdate}
         >
+          {/* Profile Picture - Optional */}
           <div className="flex justify-center">
-            <input
-              type="file"
-              accept="image/*"
-              id="uploadProfile"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            <label
-              htmlFor="uploadProfile"
-              className="w-32 h-32 rounded-full border-2 bg-[#F8E090] flex items-center justify-center text-gray-500 text-sm font-semibold hover:bg-gray-50 transition cursor-pointer overflow-hidden"
-            >
-              <img
-                src={preview || user.profile_url}
-                alt="Profile Preview"
-                className="w-full h-full object-cover"
-              />
-            </label>
+            <div className="w-32 h-32 rounded-full border-2 bg-[#F8E090] flex items-center justify-center text-gray-500 text-sm font-semibold overflow-hidden">
+              <div className="text-2xl">
+                {user.userName?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            </div>
           </div>
 
+          {/* Username Field */}
           <div className="flex flex-col w-[600px]">
-            <label className="font-bold mb-2 text-gray-700">Name</label>
+            <label className="font-bold mb-2 text-gray-700">Username</label>
             <input
               type="text"
-              value={user.name}
-              onChange={(e) => setUser({ ...user, name: e.target.value })}
-              className="w-full border rounded-full py-3 text-center placeholder:text-sm placeholder:text-[#BDBDBD]"
+              value={user.userName || ""}
+              onChange={(e) => setUser({ ...user, userName: e.target.value })}
+              className="w-full border rounded-full py-3 px-6 text-center placeholder:text-sm placeholder:text-[#BDBDBD] focus:outline-none focus:border-yellow-400"
+              placeholder="Enter your username"
             />
           </div>
 
+          {/* Email Field */}
           <div className="flex flex-col w-[600px]">
             <label className="font-bold mb-2 text-gray-700">Email</label>
             <input
               type="email"
               disabled
-              value={user.email}
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
-              className="w-full border rounded-full py-3 text-center placeholder:text-sm placeholder:text-[#BDBDBD] bg-gray-200 border-gray-50"
+              value={user.emailAddress || ""}
+              className="w-full border rounded-full  bg-gray-100 text-gray-600 py-3 px-6 text-center placeholder:text-sm placeholder:text-[#BDBDBD] focus:outline-none focus:border-yellow-400"
+              placeholder="Enter your email"
             />
           </div>
 
+          {/* Role Field*/}
+          <div className="flex flex-col w-[600px]">
+            <label className="font-bold mb-2 text-gray-700">Role</label>
+            <input
+              type="text"
+              value={user.role || ""}
+              disabled
+              className="w-full border rounded-full py-3 px-6 text-center bg-gray-100 text-gray-600"
+            />
+          </div>
+
+          {/* Member Since Field */}
+          {user.createdAt && (
+            <div className="flex flex-col w-[600px]">
+              <label className="font-bold mb-2 text-gray-700">Member Since</label>
+              <input
+                type="text"
+                value={new Date(user.createdAt).toLocaleDateString()}
+                disabled
+                className="w-full border rounded-full py-3 px-6 text-center bg-gray-100 text-gray-600"
+              />
+            </div>
+          )}
+
+          {/* Save Changes Button */}
           <div className="flex flex-col w-[600px] mt-6">
             <button
               type="submit"
-              className="w-full bg-[#F8E090] border rounded-full py-3 text-center font-normal cursor-pointer hover:brightness-95 transition"
+              className="w-full bg-[#F8E090] border rounded-full py-3 text-center font-normal cursor-pointer hover:brightness-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!user.userName || !user.emailAddress}
             >
               Save Changes
             </button>
           </div>
 
+          {/* Log Out Button */}
           <div className="flex flex-col w-[600px] mt-2">
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full border rounded-full py-3 text-center font-normal cursor-pointer hover:bg-gray-100 transition"
+              className="w-full border border-gray-300 rounded-full py-3 text-center font-normal cursor-pointer hover:bg-gray-100 transition"
             >
               Log Out
             </button>
           </div>
         </form>
 
-        <div className="mt-20 flex flex-col items-center gap-4">
-          <h2 className="font-bold text-xl text-gray-800">
-            Secure File Upload
+        {/* Game Statistics Section */}
+        <div className="mt-20 flex flex-col items-center gap-6">
+          <h2 className="font-bold text-2xl text-gray-800">
+            Game Statistics
           </h2>
-          <form onSubmit={handleFavUpload} className="flex gap-3 items-center">
-            <input
-              type="file"
-              accept=".txt"
-              onChange={(e) => setFavFile(e.target.files[0])}
-              className="border rounded p-2"
-            />
-            <button
-              type="submit"
-              className="bg-[#F8E090] px-4 py-2 rounded hover:brightness-95 transition"
-            >
-              Upload
-            </button>
-          </form>
-
-          <div className="mt-6 w-[600px]">
-            <h3 className="font-semibold text-gray-700 mb-2">Your Files</h3>
-            <ul className="border rounded-lg divide-y">
-              {fileList.length === 0 && (
-                <li className="text-center text-gray-500 py-3">
-                  No files uploaded yet.
-                </li>
-              )}
-              {fileList.map((f) => (
-                <li
-                  key={f.id}
-                  className="flex justify-between items-center px-4 py-2"
-                >
-                  <span>{f.original_name}</span>
-                  <button
-                    onClick={() => handleDownload(f.id, f.original_name)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    Download
-                  </button>
-                </li>
-              ))}
-            </ul>
+          
+          <div className="grid grid-cols-2 gap-6 w-[600px]">
+            <div className="bg-blue-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-blue-600">0</div>
+              <div className="text-gray-600 mt-2">Games Played</div>
+            </div>
+            
+            <div className="bg-green-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-green-600">0</div>
+              <div className="text-gray-600 mt-2">Total Score</div>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-purple-600">0</div>
+              <div className="text-gray-600 mt-2">Correct Answers</div>
+            </div>
+            
+            <div className="bg-orange-50 p-6 rounded-lg text-center">
+              <div className="text-3xl font-bold text-orange-600">0%</div>
+              <div className="text-gray-600 mt-2">Accuracy</div>
+            </div>
           </div>
         </div>
       </div>
