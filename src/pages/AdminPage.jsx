@@ -6,16 +6,18 @@ import useAuth from "../hooks/useAuth";
 export default function Admin() {
   const [users, setUsers] = useState([]);
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1 });
-  const { user} = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
+    // initial load
     fetchUsers(1);
   }, []);
 
+  // fetch paginated users for the admin table
   const fetchUsers = async (page = 1) => {
     try {
       const res = await api.get(`/admin/users?page=${page}`);
-      setUsers(res.data.data); 
+      setUsers(res.data.data);
       setMeta({
         current_page: res.data.current_page,
         last_page: res.data.last_page,
@@ -25,6 +27,7 @@ export default function Admin() {
     }
   };
 
+  // small stat card used in the top grid
   const StatCard = ({ value, label, variant }) => {
     const colors = {
       purple: "bg-[#7C7CF2]",
@@ -55,11 +58,13 @@ export default function Admin() {
       <div className="w-[900px] flex flex-col py-5">
         <NavBar />
 
+        {/* greeting */}
         <div className="mt-10 text-center">
           <p className="text-xl tracking-widest">HELLO</p>
-          <p className="text-3xl font-semibold mt-1"> {user?.name || '-'}</p>
+          <p className="text-3xl font-semibold mt-1">{user?.name || "-"}</p>
         </div>
 
+        {/* quick stats */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard value={users.length} label="ALL USERS" variant="purple" />
           <StatCard value={5} label="NEW USERS" variant="orange" />
@@ -67,11 +72,12 @@ export default function Admin() {
           <StatCard value={4} label="Wrong Words" variant="red" />
         </div>
 
+        {/* latest users table */}
         <div className="mt-12">
           <p className="text-sm font-semibold tracking-wide mb-3">LATEST USERS</p>
 
           <div className="overflow-hidden rounded-2xl border border-[#eee] shadow-sm">
-            {/* Head */}
+            {/* header */}
             <div className="bg-[#F8E090] px-6 py-4 text-sm font-semibold">
               <div className="grid grid-cols-12">
                 <div className="col-span-2">User ID</div>
@@ -81,7 +87,7 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Rows */}
+            {/* rows */}
             <ul className="divide-y divide-[#f2f2f2]">
               {users.map((u) => (
                 <li key={u.id} className="px-6 py-5 hover:bg-[#fafafa]">
@@ -97,7 +103,7 @@ export default function Admin() {
               ))}
             </ul>
 
-            {/* Pagination */}
+            {/* pagination */}
             <div className="flex justify-end items-center gap-3 px-6 py-4">
               <button
                 disabled={meta.current_page === 1}

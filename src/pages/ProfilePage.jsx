@@ -10,6 +10,7 @@ export default function Profile() {
   const [fileList, setFileList] = useState([]);
 
   useEffect(() => {
+    // load current user profile
     api
       .get("/profile")
       .then((res) => setUser(res.data))
@@ -17,6 +18,7 @@ export default function Profile() {
   }, []);
 
   const loadFiles = () => {
+    // fetch user's uploaded files list
     api
       .get("/myfav/lists")
       .then((res) => setFileList(res.data))
@@ -28,6 +30,7 @@ export default function Profile() {
   }, []);
 
   const handleFileChange = (e) => {
+    // preview avatar and keep selected file for submit
     const selected = e.target.files[0];
     if (selected) {
       setPreview(URL.createObjectURL(selected));
@@ -37,6 +40,7 @@ export default function Profile() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    // submit profile updates (name/email + optional avatar)
     const formData = new FormData();
     formData.append("name", user.name);
     formData.append("email", user.email);
@@ -56,6 +60,7 @@ export default function Profile() {
 
   const handleFavUpload = async (e) => {
     e.preventDefault();
+    // upload a .txt file to favorites
     if (!favFile) return alert("Select a .txt file first");
     const formData = new FormData();
     formData.append("file", favFile);
@@ -73,6 +78,7 @@ export default function Profile() {
   };
 
   const handleDownload = async (id, name) => {
+    // download file as blob
     try {
       const res = await api.get(`/myfav/${id}`, { responseType: "blob" });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -88,6 +94,7 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
+    // clear token and return to homepage
     localStorage.removeItem("token");
     window.location.href = "/";
   };
@@ -101,6 +108,7 @@ export default function Profile() {
           className="flex flex-col items-center gap-9 mt-12"
           onSubmit={handleUpdate}
         >
+          {/* avatar picker + preview */}
           <div className="flex justify-center">
             <input
               type="file"
@@ -122,6 +130,7 @@ export default function Profile() {
             </label>
           </div>
 
+          {/* name */}
           <div className="flex flex-col w-[600px]">
             <label className="font-bold mb-2 text-gray-700">Name</label>
             <input
@@ -132,6 +141,7 @@ export default function Profile() {
             />
           </div>
 
+          {/* email (read-only) */}
           <div className="flex flex-col w-[600px]">
             <label className="font-bold mb-2 text-gray-700">Email</label>
             <input
@@ -143,6 +153,7 @@ export default function Profile() {
             />
           </div>
 
+          {/* actions */}
           <div className="flex flex-col w-[600px] mt-6">
             <button
               type="submit"
@@ -163,6 +174,7 @@ export default function Profile() {
           </div>
         </form>
 
+        {/* secure text file upload + list */}
         <div className="mt-20 flex flex-col items-center gap-4">
           <h2 className="font-bold text-xl text-gray-800">
             Secure File Upload

@@ -7,6 +7,7 @@ export default function Feedback() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    // prevent empty submission
     if (!messages.trim()) {
       alert("⚠️ Feedback cannot be empty.");
       return;
@@ -31,6 +32,7 @@ export default function Feedback() {
 
       <div className="w-[900px] flex justify-center items-center">
         <div className="flex flex-col justify-end mt-20 px-4 w-[600px]">
+          {/* feedback input */}
           <textarea
             value={messages}
             onChange={(e) => setMessages(e.target.value)}
@@ -38,6 +40,7 @@ export default function Feedback() {
             className="w-full max-w-2xl h-40 border border-gray-300 rounded-lg p-4 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
 
+          {/* submit button with loading state */}
           <button
             onClick={handleSubmit}
             disabled={loading}

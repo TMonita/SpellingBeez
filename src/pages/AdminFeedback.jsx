@@ -8,11 +8,12 @@ export default function AdminFeedback() {
   const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
+    // Load all user feedbacks when page mounts
     const fetchFeedbacks = async () => {
       try {
         const res = await axios.get("/admin/feedbacks");
         setFeedbacks(res.data.feedback || res.data);
-        console.log(res.data)
+        console.log(res.data);
       } catch (err) {
         console.error("Failed to fetch feedbacks:", err);
       }
@@ -25,6 +26,7 @@ export default function AdminFeedback() {
       <div className="w-[900px] flex flex-col py-5">
         <NavBar />
 
+        {/* Greeting section */}
         <div className="mt-10 text-center">
           <p className="text-xl tracking-widest">HELLO</p>
           <p className="text-3xl font-semibold mt-1">
@@ -32,12 +34,14 @@ export default function AdminFeedback() {
           </p>
         </div>
 
+        {/* Feedback list */}
         <div className="mt-12">
           <p className="text-sm font-semibold tracking-wide mb-3">
             USER FEEDBACKS
           </p>
 
           <div className="overflow-hidden rounded-2xl border border-[#eee] shadow-sm">
+            {/* Table header */}
             <div className="bg-[#F8E090] px-6 py-4 text-sm font-semibold">
               <div className="grid grid-cols-12">
                 <div className="col-span-2">User ID</div>
@@ -47,6 +51,7 @@ export default function AdminFeedback() {
               </div>
             </div>
 
+            {/* Table body */}
             <ul className="divide-y divide-[#f2f2f2]">
               {feedbacks.map((f, idx) => (
                 <li key={idx} className="px-6 py-5 hover:bg-[#fafafa]">

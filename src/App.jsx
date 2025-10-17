@@ -15,10 +15,12 @@ import AdminFeedback from "./pages/AdminFeedback";
 function App() {
   return (
     <Routes>
+      {/* public routes */}
       <Route path="/" element={<Signup />} />
       <Route path="/login" element={<Login />} />
       <Route path="/oauth-callback" element={<OauthCallback />} />
 
+      {/* user-only routes */}
       <Route
         path="/welcome"
         element={
@@ -60,6 +62,7 @@ function App() {
         }
       />
 
+      {/* admin-only routes */}
       <Route
         path="/admin"
         element={
@@ -77,7 +80,8 @@ function App() {
         }
       />
 
-      <Route path="/unauthorized" element={<h1> Access Denied</h1>} />
+      {/* fallback */}
+      <Route path="/unauthorized" element={<h1>Access Denied</h1>} />
     </Routes>
   );
 }
